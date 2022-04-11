@@ -1,3 +1,4 @@
+from posixpath import split
 import paho.mqtt.client as mqtt
 
 class Courtier:
@@ -22,8 +23,9 @@ class Courtier:
         print("Connected")
 
     def on_message(self, client,userdata, msg):
-        #print(str(msg.topic) + " : " + str(msg.payload))
-        print(str(msg.payload))
+        (temp, humid) = str(msg.payload).split(",")
+        self.temp = temp
+        self.humid = humid
         self.est_fini = True
 
     def publish(self,temp, humid):
