@@ -71,7 +71,7 @@ class LCD:
             setText(text)
             setRGB(r,g,b)
             time.sleep(durer)
-            self.initialiser()
+            #self.initialiser()
 
     # flash en affichant le text et
     # les couleur passer en paramètre

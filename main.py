@@ -43,8 +43,8 @@ topic_subscribe = "blblka"
 user = "LP"
 ip = "test.mosquitto.org"
 
-courtier = Courtier(topic_publish,topic_subscribe, user, ip)
-controleur = Controleur(bouton, cl, dm, dht11, lcd, pot, led_rouge, led_bleu, led_vert, courtier, stop)
+#courtier = Courtier(topic_publish,topic_subscribe, user, ip)
+controleur = Controleur(bouton, cl, dm, dht11, lcd, pot, led_rouge, led_bleu, led_vert, "courtier", stop)
 
 def initialiser_capteur():
     led_rouge.eteindre()

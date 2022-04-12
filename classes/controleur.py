@@ -11,6 +11,7 @@ class Controleur:
     TEMP_MAX = 30
     BIT_SHIFT_POT = 5
     VALEUR_MAX_POT = 1023
+    DELAIS_QUITTER = 5.0
 
     def __init__(self, bouton, capteur_lumiere, detecteur_mouvement, dht11, lcd, potentiometre, led_rouge, led_bleu, led_vert, courtier, stop):
         # capteurs
@@ -40,16 +41,17 @@ class Controleur:
         self.r = 0
         self.g = 255
         self.b = 0
+        self.compteur_quitter = None
 
 
     def control_interface(self):
         while(not self.stop):
             time.sleep(0.05)
             lecture = self.bouton.lecture()
-            if (lecture and self.page == 3):
+            if (lecture and self.page == 4):
                 self.page = 0
                 lecture = None
-            if (lecture and self.page < 3):
+            if (lecture and self.page < 4):
                 self.page += 1
             
 
@@ -59,7 +61,7 @@ class Controleur:
 
         while(not self.stop):
             time.sleep(0.5)
-            self.courtier.publish(self.temp_actuel, self.humid_actuel)
+            #self.courtier.publish(self.temp_actuel, self.humid_actuel)
             # index local
             if (self.page == 0):
                 (temp, humid) = self.dht11.lecture()
@@ -73,7 +75,7 @@ class Controleur:
             if (self.page == 1):
                 time.sleep(0.2)
                 # aller chercher les donner du courtier
-                self.lcd.afficher_index(self.courtier.temp, self.courtier.humid, "DIS", self.r, self.g, self.b)
+                #self.lcd.afficher_index(self.courtier.temp, self.courtier.humid, "DIS", self.r, self.g, self.b)
             # temp config
             if (self.page == 2):
                 time.sleep(0.2) 
@@ -88,6 +90,13 @@ class Controleur:
                 valeur = (valeur * 100) / 1023 
                 self.humid_cible = valeur
                 self.lcd.afficher_edit(0, self.temp_cible, self.humid_cible, self.r, self.g, self.b)
+            if(self.page == 4 and not self.stop):
+                time.sleep(0.2)
+                self.lcd.afficher("Quitter?", 0, 255, 0, 0)
+                if(self.bouton.lecture(False) and self.compteur_quitter == None):
+                    self.compteur_quitter = time.perf_counter()
+
+
 
             self.mouvement = self.detecteur_mouvement.lecture()
             self.luminositer = self.capteur_lumiere.lecture()
@@ -104,7 +113,6 @@ class Controleur:
             # chauffage
             if (self.temp_cible - self.temp_actuel >= Controleur.EQUART and compteur_temp == None):
                 compteur_temp = time.perf_counter()
-                print(f"compteur temp: {compteur_temp}")
             if (compteur_temp != None):
                 if (self.temp_cible - self.temp_actuel >= Controleur.EQUART and time.perf_counter() - compteur_temp > Controleur.DELAI_ACTIVATION):
                     self.led_rouge.allumer()
@@ -113,13 +121,12 @@ class Controleur:
                 self.led_rouge.eteindre()
 
             # déhumidificateur
-            if (self.humid_cible - self.humid_actuel >= Controleur.EQUART and compteur_humid == None):
+            if (self.humid_actuel - self.humid_cible >= Controleur.EQUART and compteur_humid == None):
                 compteur_humid = time.perf_counter()
-                print(f"compteur humid: {compteur_humid}")
             if (compteur_humid != None):
-                if (self.humid_cible - self.humid_actuel >= Controleur.EQUART and time.perf_counter() - compteur_humid > Controleur.DELAI_ACTIVATION):
+                if (time.perf_counter() - compteur_humid > Controleur.DELAI_ACTIVATION and self.humid_actuel - self.humid_cible >= Controleur.EQUART):
                     self.led_bleu.allumer()
-            if (self.humid_actuel >= self.humid_cible):
+            if (self.humid_actuel <= self.humid_cible):
                 compteur_humid = None
                 self.led_bleu.eteindre()
 
@@ -128,11 +135,13 @@ class Controleur:
                 self.led_vert.allumer()
                 self.g = 255
                 compteur_lum = time.perf_counter()
-                print(f"compteur start")
-                print(f"mouvement: {self.mouvement}")
             if (compteur_lum != None):
                 if (time.perf_counter() - compteur_lum  > Controleur.DELAI_ACTIVATION):
                     compteur_lum = None
                     self.led_vert.eteindre()
                     self.g = 0
-                    print(f"compteur reset")
+            
+            #Quitter
+            if(self.compteur_quitter != None and time.perf_counter() - self.compteur_quitter >= Controleur.DELAIS_QUITTER):
+                self.stop = True
+                self.lcd.afficher("Au revoir!", 4.0, 128, 0, 128)
