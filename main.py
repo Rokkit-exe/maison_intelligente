@@ -1,6 +1,5 @@
-import grovepi
 import paho.mqtt.client as mqtt
-import time, threading
+import threading
 
 from classes.button import Button
 from classes.capteur_lumiere import Capteur_Lumiere
@@ -14,13 +13,15 @@ from classes.courtier import Courtier
 
 
 LOCK = threading.Lock()
+
+# Variable booléenne qui arrête tout le programme au besoin
 stop = False
 
-# analog
+# Analogue
 PORT_POT = 2
 PORT_CAPTEUR_LUMIERE = 0
 
-# digital
+# Digital
 PORT_DHT11 = 2
 PORT_BOUTON = 5
 PORT_LED_ROUGE = 8
@@ -39,26 +40,27 @@ pot = Potentiometre(PORT_POT, LOCK)
 dm = Detecteur_Mouvement(PORT_DM, LOCK)
 
 topic_publish = "CLG/IOT/LP"
-topic_subscribe = "blblka"
+topic_subscribe = "CLG/maisonIntelligente/data" 
 user = "LP"
 ip = "test.mosquitto.org"
-
-#courtier = Courtier(topic_publish,topic_subscribe, user, ip)
-controleur = Controleur(bouton, cl, dm, dht11, lcd, pot, led_rouge, led_bleu, led_vert, "courtier", stop)
 
 def initialiser_capteur():
     led_rouge.eteindre()
     led_vert.eteindre()
     led_bleu.eteindre()
 
-# surveille si bouton est clicker et affiche la bonne page du lcd
+courtier = Courtier(topic_publish,topic_subscribe, user, ip)
+controleur = Controleur(bouton, cl, dm, dht11, lcd, pot, led_rouge, led_bleu, led_vert, courtier, stop)
+
+# Surveiller si le bouton est cliquer et affiche la bonne page sur le lcd
 thread_interface = threading.Thread(target=controleur.control_interface, args=())
 
-# lit capteurs (dht11, potentiometre, affiche les donners du lcd)
+# Lit les capteurs (dht11, potentiometre, affiche les donnees sur le lcd)
 thread_capteur = threading.Thread(target=controleur.lecture_capteur, args=())
 
-# allume et eteint les LED en fonction des capteurs
+# Allume et eteint les LED en fonction des capteurs
 thread_action = threading.Thread(target=controleur.controleur_action, args=())
+
 initialiser_capteur()
 thread_interface.start()
 thread_capteur.start()

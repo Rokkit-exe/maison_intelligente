@@ -20,7 +20,7 @@ class Courtier:
     def on_connection(self, client, userdata, flags, rc):
         global result_subscribe , mid_subscribe
         result_subscribe , mid_subscribe = client.subscribe(self.topic_subscribe , 0)
-        print("Connected")
+        print("Connecté!")
 
     def on_message(self, client,userdata, msg):
         (temp, humid) = str(msg.payload).split(",")

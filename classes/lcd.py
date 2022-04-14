@@ -32,7 +32,7 @@ class LCD:
     
     def afficher_edit(self, est_temp, temp, humid, r, g, b):
         with self.lock:
-            byte  = [
+            fleche  = [
                 0b00000,
                 0b00100,
                 0b00110,
@@ -43,7 +43,7 @@ class LCD:
                 0b00000
             ]
             setRGB(r,g,b)
-            create_char(0,byte)
+            create_char(0,fleche)
             if (est_temp):
                 text1 = self.formater_ligne(f"{chr(0)} temp {temp}C ")
                 text2 = self.formater_ligne(f"  humiditer {humid}% ")
