@@ -1,3 +1,6 @@
+#Alexandre Carle, Francis Di-Folco et Louis-philippe Rousseau
+#Dernière modification: 13 avril 2022
+
 import paho.mqtt.client as mqtt
 import threading
 
